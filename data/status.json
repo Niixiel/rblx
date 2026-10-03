@@ -1,103 +1,22 @@
 {
-  "updatedAt": "2026-10-03T10:00:00Z",
+  "updatedAt": "2026-10-03T01:52:50Z",
   "pollIntervalSeconds": 300,
   "summary": {
-    "total": 10,
-    "inGame": 3,
-    "online": 2,
-    "offline": 4,
-    "inStudio": 1
+    "total": 1,
+    "inGame": 0,
+    "online": 0,
+    "offline": 1,
+    "inStudio": 0
   },
   "accounts": [
     {
-      "userId": 1,
-      "status": "InGame",
-      "presenceType": 2,
-      "placeId": 1818,
-      "lastLocation": "https://www.roblox.com/games/1818",
-      "lastOnline": "2026-10-03T09:59:41.0000000Z",
-      "avatar": "https://tr.rbxcdn.com/30DAY-AvatarHeadshot/1?v=1"
-    },
-    {
-      "userId": 3,
+      "userId": 2577600616,
       "status": "Offline",
       "presenceType": 0,
       "placeId": null,
-      "lastLocation": "",
-      "lastOnline": "2026-10-02T22:10:09.0000000Z",
-      "avatar": "https://tr.rbxcdn.com/30DAY-AvatarHeadshot/3?v=1"
-    },
-    {
-      "userId": 404,
-      "status": "Offline",
-      "presenceType": 0,
-      "placeId": null,
-      "lastLocation": "",
-      "lastOnline": "2026-10-01T04:22:55.0000000Z",
-      "avatar": "https://tr.rbxcdn.com/30DAY-AvatarHeadshot/404?v=1"
-    },
-    {
-      "userId": 456,
-      "status": "Online",
-      "presenceType": 1,
-      "placeId": null,
-      "lastLocation": "https://www.roblox.com/users/456/profile",
-      "lastOnline": "2026-10-03T09:59:33.0000000Z",
-      "avatar": "https://tr.rbxcdn.com/30DAY-AvatarHeadshot/456?v=1"
-    },
-    {
-      "userId": 789,
-      "status": "In Studio",
-      "presenceType": 3,
-      "placeId": 0,
-      "lastLocation": "Roblox Studio",
-      "lastOnline": "2026-10-03T09:59:20.0000000Z",
-      "avatar": "https://tr.rbxcdn.com/30DAY-AvatarHeadshot/789?v=1"
-    },
-    {
-      "userId": 1011,
-      "status": "InGame",
-      "presenceType": 2,
-      "placeId": 2753915549,
-      "lastLocation": "https://www.roblox.com/games/2753915549/Brookhaven-RP",
-      "lastOnline": "2026-10-03T09:59:02.0000000Z",
-      "avatar": "https://tr.rbxcdn.com/30DAY-AvatarHeadshot/1011?v=1"
-    },
-    {
-      "userId": 2022,
-      "status": "InGame",
-      "presenceType": 2,
-      "placeId": 1537690962,
-      "lastLocation": "https://www.roblox.com/games/1537690962/Blox Fruits",
-      "lastOnline": "2026-10-03T09:58:37.0000000Z",
-      "avatar": "https://tr.rbxcdn.com/30DAY-AvatarHeadshot/2022?v=1"
-    },
-    {
-      "userId": 5555,
-      "status": "Offline",
-      "presenceType": 0,
-      "placeId": null,
-      "lastLocation": "",
-      "lastOnline": "2026-09-28T18:03:11.0000000Z",
-      "avatar": "https://tr.rbxcdn.com/30DAY-AvatarHeadshot/5555?v=1"
-    },
-    {
-      "userId": 6666,
-      "status": "Online",
-      "presenceType": 1,
-      "placeId": null,
-      "lastLocation": "https://www.roblox.com/users/6666/profile",
-      "lastOnline": "2026-10-03T09:57:48.0000000Z",
-      "avatar": "https://tr.rbxcdn.com/30DAY-AvatarHeadshot/6666?v=1"
-    },
-    {
-      "userId": 8888,
-      "status": "Offline",
-      "presenceType": 0,
-      "placeId": null,
-      "lastLocation": "",
-      "lastOnline": "2026-10-02T11:45:00.0000000Z",
-      "avatar": ""
+      "lastLocation": "Website",
+      "lastOnline": "",
+      "avatar": "https://tr.rbxcdn.com/30DAY-AvatarHeadshot-4E0F1F9BB2FD897BF4AA315003AD8787-Png/48/48/AvatarHeadshot/Png/noFilter"
     }
   ]
 }
