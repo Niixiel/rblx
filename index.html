@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roblox AFK Monitor</title>
+  <meta name="description" content="Live status monitor untuk akun Roblox, di-update otomatis oleh GitHub Actions." />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            ink: {
+              950: '#020617',
+              900: '#0b1120',
+              850: '#0f172a',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* Subtle radial glow so the flat slate background does not look dead. */
+    body {
+      background-image:
+        radial-gradient(60rem 40rem at 15% -10%, rgba(56, 189, 248, 0.10), transparent 60%),
+        radial-gradient(50rem 35rem at 100% 0%, rgba(168, 85, 247, 0.10), transparent 55%);
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+    /* Hide scrollbar on the horizontal mobile table container. */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+
+<body class="min-h-screen bg-ink-950 text-slate-200 antialiased">
+  <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+
+    <!-- ================= Header ================= -->
+    <header class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-sky-500/15 text-2xl ring-1 ring-sky-400/30"
+                aria-hidden="true">
+            🎮
+          </span>
+          <h1 class="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            Roblox AFK Monitor
+          </h1>
+        </div>
+        <p class="mt-2 text-sm text-slate-400">
+          Presence Roblox dipantau otomatis tiap 5 menit oleh GitHub Actions.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3 rounded-xl border border-slate-800 bg-ink-900/70 px-4 py-3 backdrop-blur">
+        <span id="live-dot" class="relative flex h-2.5 w-2.5 shrink-0">
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
+        </span>
+        <div class="text-xs leading-tight">
+          <div class="uppercase tracking-wider text-slate-500">Last updated</div>
+          <div id="last-updated" class="font-semibold text-slate-200">Memuat…</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ================= Error banner ================= -->
+    <div id="error-banner"
+         class="mb-6 hidden items-start gap-3 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3">
+      <span class="mt-0.5 text-lg" aria-hidden="true">⚠️</span>
+      <div class="text-sm">
+        <p class="font-semibold text-red-300">Gagal memuat data</p>
+        <p id="error-detail" class="mt-0.5 text-red-300/80">
+          Tidak dapat membaca <code>data/status.json</code>. Pastikan file sudah ada di repository.
+        </p>
+      </div>
+    </div>
+
+    <!-- ================= Stat cards ================= -->
+    <section class="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4" aria-label="Ringkasan status">
+      <!-- Total -->
+      <article class="rounded-2xl border border-slate-800 bg-ink-900/70 p-5 backdrop-blur">
+        <p class="text-xs font-medium uppercase tracking-wider text-slate-500">Total Akun</p>
+        <p id="stat-total" class="mt-2 text-3xl font-bold tabular-nums text-white sm:text-4xl">—</p>
+        <p class="mt-1 text-xs text-slate-500">akun dipantau</p>
+      </article>
+
+      <!-- In-Game -->
+      <article class="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-5 backdrop-blur">
+        <p class="text-xs font-medium uppercase tracking-wider text-emerald-400/80">In-Game</p>
+        <p id="stat-ingame" class="mt-2 text-3xl font-bold tabular-nums text-emerald-400 sm:text-4xl">—</p>
+        <p class="mt-1 text-xs text-emerald-500/60">sedang bermain</p>
+      </article>
+
+      <!-- Tidak In-Game -->
+      <article class="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5 backdrop-blur">
+        <p class="text-xs font-medium uppercase tracking-wider text-amber-400/80">Online / DC</p>
+        <p id="stat-notingame" class="mt-2 text-3xl font-bold tabular-nums text-amber-400 sm:text-4xl">—</p>
+        <p class="mt-1 text-xs text-amber-500/60">tidak in-game</p>
+      </article>
+
+      <!-- Offline -->
+      <article class="rounded-2xl border border-red-500/30 bg-red-500/5 p-5 backdrop-blur">
+        <p class="text-xs font-medium uppercase tracking-wider text-red-400/80">Offline</p>
+        <p id="stat-offline" class="mt-2 text-3xl font-bold tabular-nums text-red-400 sm:text-4xl">—</p>
+        <p class="mt-1 text-xs text-red-500/60">tidak terhubung</p>
+      </article>
+    </section>
+
+    <!-- ================= Table ================= -->
+    <section class="overflow-hidden rounded-2xl border border-slate-800 bg-ink-900/70 backdrop-blur"
+             aria-label="Daftar akun">
+      <div class="flex items-center justify-between gap-4 border-b border-slate-800 px-5 py-4">
+        <h2 class="text-base font-semibold text-white">Status Akun</h2>
+        <span id="account-count" class="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-400">— akun</span>
+      </div>
+
+      <div class="no-scrollbar overflow-x-auto">
+        <table class="w-full min-w-[640px] text-left text-sm">
+          <thead>
+            <tr class="border-b border-slate-800 text-xs uppercase tracking-wider text-slate-500">
+              <th scope="col" class="px-5 py-3 font-medium">Avatar</th>
+              <th scope="col" class="px-5 py-3 font-medium">User ID</th>
+              <th scope="col" class="px-5 py-3 font-medium">Status</th>
+              <th scope="col" class="px-5 py-3 font-medium">Lokasi Terakhir</th>
+              <th scope="col" class="px-5 py-3 font-medium">Last Checked</th>
+            </tr>
+          </thead>
+          <tbody id="account-rows" class="divide-y divide-slate-800/80">
+            <tr>
+              <td colspan="5" class="px-5 py-10 text-center text-slate-500">Memuat data…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="mt-8 text-center text-xs text-slate-600">
+      Data di-refresh otomatis setiap 30 detik oleh halaman ini &middot; sumber: Roblox Presence API
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var STATUS_URL = 'data/status.json';
+      var REFRESH_MS = 30000; // 30 detik
+      var FALLBACK_AVATAR =
+        'data:image/svg+xml;charset=UTF-8,' +
+        encodeURIComponent(
+          '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48">' +
+            '<rect width="48" height="48" rx="24" fill="#1e293b"/>' +
+            '<text x="24" y="31" font-size="20" text-anchor="middle" fill="#64748b" ' +
+            'font-family="sans-serif">?</text></svg>'
+        );
+
+      // Peta status -> kelas badge Tailwind.
+      var STATUS_STYLES = {
+        InGame: 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/40',
+        Online: 'bg-amber-500/15 text-amber-300 ring-amber-500/40',
+        'In Studio': 'bg-sky-500/15 text-sky-300 ring-sky-500/40',
+        Offline: 'bg-red-500/15 text-red-300 ring-red-500/40'
+      };
+      var STATUS_DOTS = {
+        InGame: 'bg-emerald-400',
+        Online: 'bg-amber-400',
+        'In Studio': 'bg-sky-400',
+        Offline: 'bg-red-400'
+      };
+
+      function $(id) {
+        return document.getElementById(id);
+      }
+
+      function escapeHtml(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
+          return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+          }[char];
+        });
+      }
+
+      /** Format ISO8601 UTC ("...Z") menjadi waktu lokal browser. */
+      function formatTimestamp(iso) {
+        if (!iso) return '-';
+        var parsed = new Date(iso);
+        if (isNaN(parsed.getTime())) return escapeHtml(iso);
+        return parsed.toLocaleString(undefined, {
+          year: 'numeric',
+          month: 'short',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+      }
+
+      function formatRelative(iso) {
+        if (!iso) return '-';
+        var parsed = new Date(iso);
+        if (isNaN(parsed.getTime())) return '-';
+        var seconds = Math.round((Date.now() - parsed.getTime()) / 1000);
+        if (seconds < 0) return 'sebentar lagi';
+        if (seconds < 60) return seconds + ' detik lalu';
+        if (seconds < 3600) return Math.floor(seconds / 60) + ' menit lalu';
+        if (seconds < 86400) return Math.floor(seconds / 3600) + ' jam lalu';
+        return Math.floor(seconds / 86400) + ' hari lalu';
+      }
+
+      function showError(message) {
+        var banner = $('error-banner');
+        if (message) $('error-detail').innerHTML = escapeHtml(message);
+        banner.classList.remove('hidden');
+        banner.classList.add('flex');
+
+        var dot = $('live-dot');
+        if (dot) {
+          dot.innerHTML =
+            '<span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500"></span>';
+        }
+        $('last-updated').textContent = 'Gagal memuat data';
+      }
+
+      function clearError() {
+        var banner = $('error-banner');
+        banner.classList.add('hidden');
+        banner.classList.remove('flex');
+        $('live-dot').innerHTML =
+          '<span class="absolute inline-flex h-full w-full animate-ping rounded-full ' +
+          'bg-emerald-400 opacity-75"></span>' +
+          '<span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400"></span>';
+      }
+
+      function num(value) {
+        var parsed = parseInt(value, 10);
+        return isNaN(parsed) ? 0 : parsed;
+      }
+
+      function renderStats(summary) {
+        summary = summary || {};
+        var total = num(summary.total);
+        var inGame = num(summary.inGame);
+        var offline = num(summary.offline);
+        var online = num(summary.online);
+        var inStudio = num(summary.inStudio);
+
+        $('stat-total').textContent = total;
+        $('stat-ingame').textContent = inGame;
+        // "Online/DC" = semua yang tidak sedang in-game.
+        $('stat-notingame').textContent = Math.max(0, total - inGame);
+        $('stat-offline').textContent = offline;
+
+        $('account-count').textContent =
+          (online + inStudio > 0 ? online + inStudio + ' online · ' : '') + total + ' akun';
+      }
+
+      function renderRows(accounts, updatedAt) {
+        var tbody = $('account-rows');
+
+        if (!Array.isArray(accounts) || accounts.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="5" class="px-5 py-10 text-center text-slate-500">' +
+            'Belum ada akun yang dipantau.</td></tr>';
+          return;
+        }
+
+        var checkedText = formatTimestamp(updatedAt);
+        var checkedRelative = formatRelative(updatedAt);
+
+        tbody.innerHTML = accounts
+          .map(function (account) {
+            var uid = escapeHtml(account.userId);
+            var status = account.status || 'Unknown';
+            var style = STATUS_STYLES[status] ||
+              'bg-slate-700/30 text-slate-300 ring-slate-600/40';
+            var dot = STATUS_DOTS[status] || 'bg-slate-400';
+
+            var avatar = account.avatar
+              ? escapeHtml(account.avatar)
+              : FALLBACK_AVATAR;
+
+            var location = account.lastLocation
+              ? escapeHtml(account.lastLocation)
+              : '<span class="text-slate-600">-</span>';
+
+            var place = account.placeId
+              ? ' <span class="text-slate-600">· place ' + escapeHtml(account.placeId) + '</span>'
+              : '';
+
+            return (
+              '<tr class="transition-colors hover:bg-slate-800/40">' +
+              // Avatar
+              '<td class="px-5 py-3">' +
+              '<img src="' + avatar + '" alt="Avatar user ' + uid + '" loading="lazy" ' +
+              'width="40" height="40" ' +
+              'class="h-10 w-10 rounded-full object-cover ring-2 ring-slate-700 ' +
+              'onerror="this.onerror=null;this.src=\'' + FALLBACK_AVATAR + '\';" />' +
+              '</td>' +
+              // User ID
+              '<td class="px-5 py-3">' +
+              '<a href="https://www.roblox.com/users/' + uid + '" target="_blank" ' +
+              'rel="noopener noreferrer" ' +
+              'class="font-mono text-sm text-sky-400 hover:text-sky-300 hover:underline">' +
+              uid + '</a>' +
+              '</td>' +
+              // Status badge
+              '<td class="px-5 py-3">' +
+              '<span class="inline-flex items-center gap-2 rounded-full px-3 py-1 ' +
+              'text-xs font-semibold ring-1 ' + style + '">' +
+              '<span class="h-1.5 w-1.5 rounded-full ' + dot + '"></span>' +
+              escapeHtml(status) +
+              '</span>' +
+              '</td>' +
+              // Last location
+              '<td class="max-w-[220px] truncate px-5 py-3 text-slate-400" title="' +
+              escapeHtml(account.lastLocation || '') + '">' + location + place + '</td>' +
+              // Last checked
+              '<td class="whitespace-nowrap px-5 py-3 text-xs text-slate-500" title="' +
+              escapeHtml(checkedText) + '">' +
+              escapeHtml(checkedRelative) +
+              '</td>' +
+              '</tr>'
+            );
+          })
+          .join('');
+      }
+
+      function render(data) {
+        if (!data || typeof data !== 'object') {
+          showError('Isi data/status.json tidak valid.');
+          return;
+        }
+
+        clearError();
+        renderStats(data.summary);
+        renderRows(data.accounts, data.updatedAt);
+        $('last-updated').textContent = formatTimestamp(data.updatedAt);
+      }
+
+      function loadStatus() {
+        // Cache-busting lewat query param supaya GitHub Pages tidak menyajikan
+        // JSON lama; 'no-store' agar browser tidak memakai cache sendiri.
+        var url = STATUS_URL + '?t=' + Date.now();
+
+        fetch(url, { cache: 'no-store' })
+          .then(function (response) {
+            if (!response.ok) {
+              throw new Error('HTTP ' + response.status + ' dari ' + STATUS_URL);
+            }
+            return response.json();
+          })
+          .then(render)
+          .catch(function (error) {
+            showError(
+              error && error.message
+                ? 'Tidak dapat membaca ' + STATUS_URL + ' (' + error.message + ').'
+                : null
+            );
+            // Tetap tampilkan baris "Gagal memuat data" di tabel.
+            $('account-rows').innerHTML =
+              '<tr><td colspan="5" class="px-5 py-10 text-center text-red-400/80">' +
+              'Gagal memuat data</td></tr>';
+          });
+      }
+
+      loadStatus();
+      window.setInterval(loadStatus, REFRESH_MS);
+    })();
+  </script>
+</body>
+</html>
