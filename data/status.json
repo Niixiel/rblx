@@ -1,20 +1,20 @@
 {
-  "updatedAt": "2026-10-10T22:39:40Z",
+  "updatedAt": "2026-10-11T01:16:54Z",
   "pollIntervalSeconds": 300,
   "summary": {
     "total": 1,
-    "inGame": 0,
+    "inGame": 1,
     "online": 0,
-    "offline": 1,
+    "offline": 0,
     "inStudio": 0
   },
   "accounts": [
     {
       "userId": 2577600616,
-      "status": "Offline",
-      "presenceType": 0,
-      "placeId": null,
-      "lastLocation": "Website",
+      "status": "InGame",
+      "presenceType": 2,
+      "placeId": 107778070777162,
+      "lastLocation": "Steal An Egg",
       "lastOnline": "",
       "avatar": "https://tr.rbxcdn.com/30DAY-AvatarHeadshot-4E0F1F9BB2FD897BF4AA315003AD8787-Png/48/48/AvatarHeadshot/Png/noFilter"
     }
